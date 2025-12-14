@@ -41,14 +41,24 @@ export default function AppShell() {
     )
   }
 
+  import AuthScreen from '@/components/auth/AuthScreen'
+
+  ...
+
   if (!session) {
-    return <div>Auth screen coming next</div>
+    return <AuthScreen />
   }
 
+  import TopNav from '@/components/navigation/TopNav'
+
   return (
-    <div className="min-h-screen">
-      <div className="p-4 font-bold">Kalā Sangam</div>
-      <div className="p-4">Current view: {view}</div>
+  <div className="min-h-screen bg-slate-50">
+    <TopNav view={view} setView={setView} />
+    <div className="p-6">
+      <div className="text-slate-600">
+        View placeholder: <strong>{view}</strong>
+      </div>
     </div>
+  </div>
   )
 }
