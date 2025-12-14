@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import ProjectRoleForm from '@/components/projects/ProjectRoleForm'
+import ApplicationForm from '@/components/applications/ApplicationForm'
 
 type Role = {
   id: string
@@ -22,9 +23,36 @@ export default function ProjectRolesView({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [showForm, setShowForm] = useState(false)
+  const [showRoleForm, setShowRoleForm] = useState(false)
   const [editingRole, setEditingRole] = useState<Role | null>(null)
 
+  const [showApplyForRoleId, setShowApplyForRoleId] =
+    useState<string | null>(null)
+  const [applicantProfileId, setApplicantProfileId] =
+    useState<string | null>(null)
+
+  /* ---------------- Load applicant profile ---------------- */
+  useEffect(() => {
+    const loadApplicantProfile = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) return
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single()
+
+      if (data) setApplicantProfileId(data.id)
+    }
+
+    loadApplicantProfile()
+  }, [])
+
+  /* ---------------- Load roles ---------------- */
   const loadRoles = async () => {
     setLoading(true)
 
@@ -52,12 +80,13 @@ export default function ProjectRolesView({
 
   return (
     <div className="space-y-4">
+      {/* ===== HEADER ===== */}
       <div className="flex items-center justify-between">
         <h3 className="font-semibold">Roles</h3>
         <button
           onClick={() => {
             setEditingRole(null)
-            setShowForm(true)
+            setShowRoleForm(true)
           }}
           className="text-sm text-purple-600"
         >
@@ -65,45 +94,60 @@ export default function ProjectRolesView({
         </button>
       </div>
 
-      {showForm && (
+      {/* ===== CREATE / EDIT ROLE ===== */}
+      {showRoleForm && (
         <ProjectRoleForm
           projectId={projectId}
           initial={editingRole}
           onSaved={() => {
-            setShowForm(false)
+            setShowRoleForm(false)
             setEditingRole(null)
             loadRoles()
           }}
           onCancel={() => {
-            setShowForm(false)
+            setShowRoleForm(false)
             setEditingRole(null)
           }}
         />
       )}
 
-      {roles.length === 0 && !showForm && (
-        <div className="text-slate-500">
-          No roles added yet.
-        </div>
+      {/* ===== EMPTY STATE ===== */}
+      {roles.length === 0 && !showRoleForm && (
+        <div className="text-slate-500">No roles added yet.</div>
       )}
 
+      {/* ===== ROLES LIST ===== */}
       <div className="space-y-3">
         {roles.map((role) => (
           <div
             key={role.id}
-            className="bg-white p-4 rounded-xl shadow space-y-1"
+            className="bg-white p-4 rounded-xl shadow space-y-2"
           >
             <div className="flex items-center justify-between">
               <div className="font-medium">{role.role_name}</div>
-              <button
-                onClick={() => {
-                  setEditingRole(role)
-                  setShowForm(true)
-                }}
-                className="text-xs text-purple-600"
-              >
-                Edit
-              </button>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setEditingRole(role)
+                    setShowRoleForm(true)
+                  }}
+                  className="text-xs text-purple-600"
+                >
+                  Edit
+                </button>
+
+                {applicantProfileId && (
+                  <button
+                    onClick={() =>
+                      setShowApplyForRoleId(role.id)
+                    }
+                    className="text-xs text-green-600"
+                  >
+                    Apply
+                  </button>
+                )}
+              </div>
             </div>
 
             {role.description && (
@@ -127,6 +171,22 @@ export default function ProjectRolesView({
                 View script
               </a>
             )}
+
+            {/* ===== APPLY FORM ===== */}
+            {showApplyForRoleId === role.id &&
+              applicantProfileId && (
+                <ApplicationForm
+                  projectId={projectId}
+                  roleId={role.id}
+                  applicantId={applicantProfileId}
+                  onSubmitted={() =>
+                    setShowApplyForRoleId(null)
+                  }
+                  onCancel={() =>
+                    setShowApplyForRoleId(null)
+                  }
+                />
+              )}
           </div>
         ))}
       </div>
