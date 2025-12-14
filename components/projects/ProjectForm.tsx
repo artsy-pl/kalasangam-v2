@@ -45,11 +45,11 @@ export default function ProjectForm({
       status,
       project_location: locations
         .split(',')
-        .map((s) => s.trim())
+        .map((s: string) => s.trim())
         .filter(Boolean),
       language_requirements: languages
         .split(',')
-        .map((s) => s.trim())
+        .map((s: string) => s.trim())
         .filter(Boolean),
       creator_id: creatorId,
     }
