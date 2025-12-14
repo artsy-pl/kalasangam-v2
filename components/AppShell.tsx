@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import DashboardView from '@/components/views/DashboardView'
+import AuthScreen from '@/components/auth/AuthScreen'
+import TopNav from '@/components/navigation/TopNav'
 
 export type ViewState =
   | 'dashboard'
@@ -41,24 +44,21 @@ export default function AppShell() {
     )
   }
 
-  import AuthScreen from '@/components/auth/AuthScreen'
-
-  ...
-
   if (!session) {
     return <AuthScreen />
   }
-
-  import TopNav from '@/components/navigation/TopNav'
 
   return (
   <div className="min-h-screen bg-slate-50">
     <TopNav view={view} setView={setView} />
     <div className="p-6">
-      <div className="text-slate-600">
-        View placeholder: <strong>{view}</strong>
-      </div>
-    </div>
+	  {view === 'dashboard' && <DashboardView />}
+	  {view !== 'dashboard' && (
+		<div className="text-slate-500">
+		  {view.replace('-', ' ')} view coming next
+		</div>
+	  )}
+	</div>
   </div>
   )
 }
