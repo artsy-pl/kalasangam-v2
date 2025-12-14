@@ -6,6 +6,7 @@ import DashboardView from '@/components/views/DashboardView'
 import AuthScreen from '@/components/auth/AuthScreen'
 import TopNav from '@/components/navigation/TopNav'
 import ProfileView from '@/components/views/ProfileView'
+import ProjectsView from '@/components/views/ProjectsView'
 
 
 export type ViewState =
@@ -56,10 +57,13 @@ export default function AppShell() {
     <div className="p-6">
 	  {view === 'dashboard' && <DashboardView />}
 	  {view === 'profile' && <ProfileView />}
-	  {view !== 'dashboard' && view !== 'profile' && (
-		<div className="text-slate-500">
-		  {view.replace('-', ' ')} view coming next
-		</div>
+	  {view === 'projects' && <ProjectsView />}
+	  {view !== 'dashboard' && 
+		view !== 'profile' && 
+		view !== 'projects' && (
+			<div className="text-slate-500">
+			  {view.replace('-', ' ')} view coming next
+			</div>
 	  )}
 	</div>
   </div>
