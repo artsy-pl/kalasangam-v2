@@ -7,8 +7,9 @@ type Project = {
   id: string
   title: string
   description: string | null
-  tags: string[] | null
-  link: string | null
+  status: string
+  project_type: string | null
+  created_at: string
 }
 
 export default function ProjectsView() {
@@ -18,20 +19,37 @@ export default function ProjectsView() {
 
   useEffect(() => {
     const loadProjects = async () => {
+      // 1. Get logged-in user
       const {
         data: { user },
       } = await supabase.auth.getUser()
 
       if (!user) {
-        setError('User not found')
+        setError('User not authenticated')
         setLoading(false)
         return
       }
 
+      // 2. Resolve profile ID
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single()
+
+      if (profileError || !profile) {
+        setError('Profile not found')
+        setLoading(false)
+        return
+      }
+
+      // 3. Fetch projects created by this profile
       const { data, error } = await supabase
         .from('projects')
-        .select('*')
-        .eq('user_id', user.id)
+        .select(
+          'id, title, description, status, project_type, created_at'
+        )
+        .eq('creator_id', profile.id)
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -50,12 +68,15 @@ export default function ProjectsView() {
   if (error) return <div className="text-red-600">{error}</div>
 
   return (
-    <div className="space-y-4 max-w-2xl">
-      <h2 className="text-xl font-semibold">Projects</h2>
+    <div className="space-y-4 max-w-3xl">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">My Projects</h2>
+        {/* Add Project button comes in Phase 6B */}
+      </div>
 
       {projects.length === 0 && (
         <div className="text-slate-500">
-          No projects yet. Add your first one.
+          You haven’t created any projects yet.
         </div>
       )}
 
@@ -65,25 +86,23 @@ export default function ProjectsView() {
             key={p.id}
             className="bg-white p-4 rounded-xl shadow space-y-1"
           >
-            <div className="font-medium">{p.title}</div>
+            <div className="flex items-center justify-between">
+              <div className="font-medium">{p.title}</div>
+              <span className="text-xs px-2 py-1 rounded bg-slate-100">
+                {p.status}
+              </span>
+            </div>
+
+            {p.project_type && (
+              <div className="text-xs text-slate-500">
+                {p.project_type}
+              </div>
+            )}
+
             {p.description && (
               <div className="text-sm text-slate-600">
                 {p.description}
               </div>
-            )}
-            {p.tags?.length && (
-              <div className="text-xs text-slate-500">
-                {p.tags.join(', ')}
-              </div>
-            )}
-            {p.link && (
-              <a
-                href={p.link}
-                target="_blank"
-                className="text-sm text-purple-600"
-              >
-                View link
-              </a>
             )}
           </div>
         ))}
