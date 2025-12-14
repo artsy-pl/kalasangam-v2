@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabaseClient'
 import DashboardView from '@/components/views/DashboardView'
 import AuthScreen from '@/components/auth/AuthScreen'
 import TopNav from '@/components/navigation/TopNav'
+import ProfileView from '@/components/views/ProfileView'
+
 
 export type ViewState =
   | 'dashboard'
@@ -53,7 +55,8 @@ export default function AppShell() {
     <TopNav view={view} setView={setView} />
     <div className="p-6">
 	  {view === 'dashboard' && <DashboardView />}
-	  {view !== 'dashboard' && (
+	  {view === 'profile' && <ProfileView />}
+	  {view !== 'dashboard' && view !== 'profile' && (
 		<div className="text-slate-500">
 		  {view.replace('-', ' ')} view coming next
 		</div>
